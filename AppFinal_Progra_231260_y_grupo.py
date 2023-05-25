@@ -1104,20 +1104,56 @@ def generar_grafica():
             respuesta = row[1]
             datos[respuesta] += 1
 
-    # Generar la gráfica
-    etiquetas = list(datos.keys())
-    valores = list(datos.values())
+    # Configurar los estilos de colores
+    colores = ['#FF6F61', '#6B5B95']
 
     # Crear una nueva figura con el tamaño deseado
-    plt.figure(figsize=(12, 5))  # Ajusta el tamaño según tus necesidades
+    plt.figure(figsize=(12, 6))  # Ajusta el tamaño según tus necesidades
 
-    plt.bar(etiquetas, valores)
+    # Crear la gráfica de barras con estilo
+    plt.bar(datos.keys(), datos.values(), color=colores)
+
+    # Configurar los ejes y el título de la gráfica
     plt.xlabel("Respuestas")
     plt.ylabel("Cantidad")
-    plt.title("Si tiene más alto el nivel de NO, por favor cuíde su salud, dirijase al apartado de Dieta Saludable/ Consejos Diarios/ Ejercicios")
+    plt.title("Si tiene más alto el nivel de NO, por favor cuíde su salud, diríjase al apartado de Dieta Saludable/ Consejos Diarios/ Ejercicios")
 
-    # Mostrar la gráfica en la misma ventana
+    # Personalizar el fondo de la gráfica
+    plt.gca().set_facecolor('#F5F5F5')
+    plt.grid(color='white', linestyle='--')
+
+    # Añadir etiquetas de valor en las barras
+    for i, valor in enumerate(datos.values()):
+        plt.text(i, valor + 0.5, str(valor), ha='center', va='bottom', fontweight='bold')
+
+    # Mostrar la gráfica
     plt.show()
+
+# def generar_grafica():
+#     archivo_csv = "respuestas.csv"
+#     datos = {"Sí": 0, "No": 0}
+#     
+#     with open(archivo_csv, mode='r') as file:
+#         reader = csv.reader(file)
+#         next(reader)  # Saltar la primera fila de encabezados
+#         for row in reader:
+#             respuesta = row[1]
+#             datos[respuesta] += 1
+# 
+#     # Generar la gráfica
+#     etiquetas = list(datos.keys())
+#     valores = list(datos.values())
+# 
+#     # Crear una nueva figura con el tamaño deseado
+#     plt.figure(figsize=(12, 5))  # Ajusta el tamaño según tus necesidades
+# 
+#     plt.bar(etiquetas, valores)
+#     plt.xlabel("Respuestas")
+#     plt.ylabel("Cantidad")
+#     plt.title("Si tiene más alto el nivel de NO, por favor cuíde su salud, dirijase al apartado de Dieta Saludable/ Consejos Diarios/ Ejercicios")
+# 
+#     # Mostrar la gráfica en la misma ventana
+#     plt.show()
     
 import matplotlib.pyplot as plt
 
@@ -1233,8 +1269,103 @@ def ADMINISTRADOR():
     verificar_boton = tk.Button(ventana_autenticacion, text="Verificar", command=verificar_contrasena)
     verificar_boton.pack()
 
+opcion1_radio = None
+opcion2_radio = None
+opcion3_radio = None
+
+def modificar_datos():
+    dpi_carnet = texto_entry_dpi_carnet.get()  # Obtener el DPI o carnet ingresado
+
+    # Verificar si el archivo CSV existe
+    if not os.path.exists("datos.csv"):
+        messagebox.showerror("Error", "El archivo CSV no existe.")
+        return
+    
+    # Leer los datos del archivo CSV y guardarlos en una lista de diccionarios
+    datos = []
+    with open("datos.csv", mode='r') as file:
+        reader = csv.DictReader(file)
+        for row in reader:
+            datos.append(row)
+
+    # Buscar el DPI o carnet ingresado en la lista de datos
+    encontrado = False
+    for i, row in enumerate(datos):
+        if row['DPICARNET'] == dpi_carnet:
+            encontrado = True
+            # Modificar los datos según lo ingresado en las casillas
+            if texto_entry_nombre.get():
+                datos[i]['Nombre'] = texto_entry_nombre.get()
+            if texto_entry_apellido.get():
+                datos[i]['Apellido'] = texto_entry_apellido.get()
+            if texto_entry_edad.get():
+                datos[i]['Edad'] = texto_entry_edad.get()
+            if texto_entry_telefono.get():
+                datos[i]['Telefono'] = texto_entry_telefono.get()
+            # Modificar el campo 'Sexo' según la opción seleccionada
+#             datos[i]['Sexo'] = genero_var.get()
+            datos[i]['Sexo'] = genero_var.get() if genero_var.get() else ''
+            break
+
+    if encontrado:
+        # Guardar los datos modificados en el archivo CSV
+        with open("datos.csv", mode='w', newline='') as file:
+            fieldnames = ['DPICARNET', 'Nombre', 'Apellido', 'Edad', 'Sexo', 'Telefono']
+            writer = csv.DictWriter(file, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(datos)
+
+        messagebox.showinfo("Éxito", "Los datos se han modificado correctamente.")
+    else:
+        messagebox.showerror("Error", "No se encontró el DPI o carnet en los datos.")
+
+    # Limpiar las casillas de entrada después de la modificación
+    texto_entry_nombre.delete(0, tk.END)
+    texto_entry_apellido.delete(0, tk.END)
+    texto_entry_edad.delete(0, tk.END)
+    texto_entry_telefono.delete(0, tk.END)
+    texto_entry_dpi_carnet.delete(0, tk.END)
+
+
+def validar_modificacion():
+    if not texto_entry_dpi_carnet.get():
+        messagebox.showerror("Error", "Ingrese al menos el número de identificación.")
+    else:
+        modificar_datos()
+
+def ADMINISTRADOR():
+    # Crear ventana de autenticación
+    ventana_autenticacion = tk.Toplevel()
+    ventana_autenticacion.resizable(False, False)
+    ventana_autenticacion.protocol("WM_DELETE_WINDOW", lambda: None)
+    ventana_autenticacion.title("Autenticación")
+    ventana_autenticacion.geometry("300x100")
+
+    # Función para verificar la contraseña
+    def verificar_contrasena():
+        contrasena_ingresada = contrasena_entry.get()
+        contrasena_correcta = "231260"  # Cambia esto por tu contraseña correcta
+
+        if contrasena_ingresada == contrasena_correcta:
+            ventana_autenticacion.destroy()  # Cerrar ventana de autenticación
+            abrir_ventana_administrador()
+        else:
+            messagebox.showerror("Error", "Contraseña incorrecta")
+
+    # Etiqueta y campo de entrada de contraseña
+    contrasena_label = tk.Label(ventana_autenticacion, text="Introduzca la contraseña:")
+    contrasena_label.pack()
+
+    contrasena_entry = tk.Entry(ventana_autenticacion, show="*")
+    contrasena_entry.pack()
+
+    # Botón de verificación
+    verificar_boton = tk.Button(ventana_autenticacion, text="Verificar", command=verificar_contrasena)
+    verificar_boton.pack()
+
 # Declara treeview como una variable global
 treeview = None
+import os
 
 def mostrar_registros_guardados():
     # Acceder a treeview como una variable global
@@ -1243,20 +1374,213 @@ def mostrar_registros_guardados():
     # Limpiar el Treeview antes de mostrar nuevos datos
     treeview.delete(*treeview.get_children())
 
+    # Comprobar la existencia del archivo CSV
+    if not os.path.exists('datos.csv'):
+        treeview.insert('', 'end', values=('No existen datos',), tags='left')
+        return
+
+    try:
+        with open('datos.csv', 'r') as file:
+            reader = csv.reader(file)
+            # Agregar encabezados de las columnas
+            headers = next(reader)
+            treeview['columns'] = headers  # Usar todos los encabezados del CSV
+
+            for header in headers:
+                treeview.heading(header, text=header)
+                # Ajustar el ancho de la columna
+                if header == headers[0]:
+                    treeview.column(header, width=200, anchor='w')  # Ajustar el ancho de la primera columna
+                else:
+                    treeview.column(header, width=150, anchor='center')  # Ajustar el ancho de las demás columnas
+
+            # Ajustar la alineación del texto en las celdas a la izquierda
+            treeview.tag_configure('left', anchor='w')
+
+            # Agregar los datos del CSV al Treeview
+            for row in reader:
+                treeview.insert('', 'end', values=row, tags='left')  # Asignar el tag 'left' a cada fila
+    except:
+        treeview.insert('', 'end', values=('Error al leer los datos',), tags='left')
+import numpy as np
+
+
+# def graficar_genero():
+#     # Leer el archivo CSV y obtener los datos de género
+#     generos = []
+#     with open('datos.csv', 'r') as file:
+#         reader = csv.reader(file)
+#         next(reader)  # Saltar la fila de encabezados
+#         for row in reader:
+#             genero = row[4]  # Columna del género en el CSV
+#             if genero:
+#                 generos.append(genero)
+# 
+#     # Contar la cantidad de cada género
+#     genero_counts = {}
+#     for genero in generos:
+#         genero_counts[genero] = genero_counts.get(genero, 0) + 1
+# 
+#     # Crear la gráfica de barras
+#     fig, ax = plt.subplots()
+#     ax.bar(genero_counts.keys(), genero_counts.values())
+# 
+#     # Configurar los ejes y el título de la gráfica
+#     ax.set_xlabel('Género')
+#     ax.set_ylabel('Cantidad')
+#     ax.set_title('Distribución de género')
+# 
+#     # Mostrar la gráfica
+#     plt.show()
+def graficar_genero():
+    # Leer el archivo CSV y obtener los datos de género
+    generos = []
     with open('datos.csv', 'r') as file:
         reader = csv.reader(file)
-        # Agregar encabezados de las columnas
-        headers = next(reader)
-        treeview['columns'] = headers[1:]  # Ignorar el primer encabezado 'DPICARNET'
-        treeview.heading('#0', text='Índice')
-        for header in headers[1:]:
-            treeview.heading(header, text=header)
+        next(reader)  # Saltar la fila de encabezados
+        for row in reader:
+            genero = row[4]  # Columna del género en el CSV
+            if genero:
+                generos.append(genero)
 
-        # Agregar los datos del CSV al Treeview
-        for i, row in enumerate(reader, start=1):
-            dpi_carnet = row[0] if row[0] else 'N/A'  # Usar 'N/A' si no hay valor en el primer campo
-            values = tuple(row[1:])
-            treeview.insert('', 'end', text=str(i), values=values)
+    # Contar la cantidad de cada género
+    genero_counts = {}
+    for genero in generos:
+        genero_counts[genero] = genero_counts.get(genero, 0) + 1
+
+    # Configurar los estilos de colores
+    colores = ['#FF6F61', '#6B5B95', '#88B04B', '#F7CAC9', '#955251', '#FF7A5A']
+
+    # Crear la gráfica de barras con estilo
+    fig, ax = plt.subplots()
+    ax.bar(genero_counts.keys(), genero_counts.values(), color=colores)
+
+    # Configurar los ejes y el título de la gráfica
+    ax.set_xlabel('Género')
+    ax.set_ylabel('Cantidad')
+    ax.set_title('Distribución de género')
+
+    # Personalizar el fondo de la gráfica
+    ax.set_facecolor('#F5F5F5')
+    ax.grid(color='white', linestyle='--')
+
+    # Añadir etiquetas de valor en las barras
+    for i, (genero, count) in enumerate(genero_counts.items()):
+        ax.text(i, count + 0.5, str(count), ha='center', va='bottom', fontweight='bold')
+
+    # Mostrar la gráfica
+    plt.show()
+
+    
+#   _   _          _      _
+#  | | | |_ __  __| |__ _| |_ ___
+#  | |_| | '_ \/ _` / _` |  _/ -_)
+#   \___/| .__/\__,_\__,_|\__\___|
+#        |_|
+
+
+# def graficar_edades():
+#     # Leer el archivo CSV y obtener los datos de edades
+#     edades = []
+#     with open('datos.csv', 'r') as file:
+#         reader = csv.reader(file)
+#         next(reader)  # Saltar la fila de encabezados
+#         for row in reader:
+#             edad = row[3]  # Columna de la edad en el CSV
+#             if edad:
+#                 edades.append(int(edad))
+# 
+#     # Configurar los valores del eje x (edades) y del eje y (rango de 0 al máximo)
+#     x = np.unique(edades)
+#     y = [edades.count(edad) for edad in x]
+# 
+#     # Crear la gráfica de barras con estilo
+#     fig, ax = plt.subplots()
+#     ax.bar(x, y, color='skyblue', edgecolor='gray', linewidth=1.5)
+# 
+#     # Configurar los ejes y el título de la gráfica
+#     ax.set_xlabel('Edad')
+#     ax.set_ylabel('Cantidad')
+#     ax.set_title('Distribución de edades')
+# 
+#     # Añadir etiquetas en las barras
+#     for i, j in zip(x, y):
+#         ax.text(i, j, str(j), ha='center', va='bottom')
+# 
+#     # Mostrar la gráfica
+#     plt.show()
+
+
+
+# def graficar_edades():
+#     # Leer el archivo CSV y obtener los datos de edades
+#     edades = []
+#     with open('datos.csv', 'r') as file:
+#         reader = csv.reader(file)
+#         next(reader)  # Saltar la fila de encabezados
+#         for row in reader:
+#             edad = row[3]  # Columna de la edad en el CSV
+#             if edad:
+#                 edades.append(int(edad))
+# 
+#     # Configurar los valores del eje x (edades) y del eje y (rango de 0 al máximo)
+#     x = np.unique(edades)
+#     y = [edades.count(edad) for edad in x]
+# 
+#     # Crear la gráfica de barras con estilo
+#     fig, ax = plt.subplots()
+#     ax.bar(x, y, color='purple')
+# 
+#     # Configurar los ejes y el título de la gráfica
+#     ax.set_xlabel('Edad')
+#     ax.set_ylabel('Cantidad')
+#     ax.set_title('Distribución de edades')
+# 
+#     # Personalizar el fondo de la gráfica
+#     ax.set_facecolor('#f6f6f6')
+#     ax.grid(color='white')
+# 
+#     # Añadir etiquetas en las barras
+#     for i, j in zip(x, y):
+#         ax.text(i, j + 0.2, str(j), ha='center', color='white')
+# 
+#     # Mostrar la gráfica
+#     plt.show()
+    
+def graficar_edades():
+    # Leer el archivo CSV y obtener los datos de edades
+    edades = []
+    with open('datos.csv', 'r') as file:
+        reader = csv.reader(file)
+        next(reader)  # Saltar la fila de encabezados
+        for row in reader:
+            edad = row[3]  # Columna de la edad en el CSV
+            if edad:
+                edades.append(int(edad))
+
+    # Configurar los valores del eje x (edades) y del eje y (rango de 0 al máximo)
+    x = np.unique(edades)
+    y = [edades.count(edad) for edad in x]
+
+    # Crear la gráfica de barras con estilo
+    fig, ax = plt.subplots()
+    ax.bar(x, y, color='#FF9F00', edgecolor='black')
+
+    # Configurar los ejes y el título de la gráfica
+    ax.set_xlabel('Edad')
+    ax.set_ylabel('Cantidad')
+    ax.set_title('Distribución de edades')
+
+    # Personalizar el fondo de la gráfica
+    ax.set_facecolor('#EEEEEE')
+    ax.grid(color='white', linestyle='--')
+
+    # Añadir sombreado a las barras
+    for i, j in zip(x, y):
+        ax.bar(i, j, color='#FF9F00', edgecolor='black', linewidth=0.5, alpha=0.8)
+
+    # Mostrar la gráfica
+    plt.show()
 
 def abrir_ventana_administrador():
     # Crear nueva ventana
@@ -1330,94 +1654,30 @@ def abrir_ventana_administrador():
     # Agregar botón para mostrar los registros guardados
     btn_datoscsv = tk.Button(nueva_ventanaadmin, text="Mostrar los registros guardados", command=mostrar_registros_guardados)
     btn_datoscsv.place(x=100, y=550)
-
+    
     btn_preguntas = tk.Button(nueva_ventanaadmin, text="Modificar Datos", **estilo_botonmd, command=validar_modificacion)
     btn_preguntas.place(x=100, y=500)
- 
+
+    btn_grafica1 = tk.Button(nueva_ventanaadmin, text="Graficar datos de género", **estilo_botondg1, command=graficar_genero)
+    btn_grafica1.place(x=340, y=20)
+#     btn_grafica2 = tk.Button(nueva_ventanaadmin, text="Graficar edades", **estilo_botong1, command=graficar_edades)
+#     btn_grafica2.place(x=400, y=5)
+    btn_grafica2 = tk.Button(nueva_ventanaadmin, text="Graficar edades", font=('Arial', 12, "italic"), fg='white', bg='black', width=30, height=3, command=graficar_edades)
+    btn_grafica2.place(x=340, y=150)
+    # promedio de edades
+    btn_grafica3 = tk.Button(nueva_ventanaadmin, text="Promedio de edades", font=('Arial', 12, "italic"), fg='white', bg='black', width=30, height=3)
+    btn_grafica3.place(x=340, y=280)
+
+    
 
 boton_xd1 = tk.Button(ventana, text="Administrador", **estilo_botonrd, command=ADMINISTRADOR)
 boton_xd1.place(x=10, y=420)
 
-# def abrir_ventana_administrador():
-#     # Crear nueva ventana
-#     nueva_ventanaadmin = tk.Toplevel()
-#     nueva_ventanaadmin.resizable(False, False)
-#     nueva_ventanaadmin.protocol("WM_DELETE_WINDOW", lambda: None)
-#     nueva_ventanaadmin.title("♥ Admin de Datos ♥")
-#     nueva_ventanaadmin.geometry("1050x600")
-# 
-#     # Agregar imagen a la nueva ventana
-#     try:
-#         # Obtener la ruta completa de la imagen
-#         imagen_path = os.path.join(os.path.dirname(__file__), "ADMIN.png")
-#         imagen = Image.open(imagen_path)
-#         imagen = imagen.resize((1050, 600), Image.LANCZOS)
-#         imagen = ImageTk.PhotoImage(imagen)
-#         imagen_label = tk.Label(nueva_ventanaadmin, image=imagen)
-#         imagen_label.image = imagen
-#         imagen_label.place(x=0, y=0)
-#     except Exception as e:
-#         print("Error al cargar la imagen:", e)
-#         #boton volver
-#     volver_boton5 = tk.Button(nueva_ventanaadmin, text="Volver", **estilo_botonne, command=nueva_ventanaadmin.destroy)
-#     volver_boton5.place(x=225, y=5)
-#     # las casillas para modificar los datos del csv, es necesario el de dpi para poder cambiar cualquier dato,
-#     # si se desea cambiar el nombre u otro, escribir solamente el dpi o carnet y el que se desea cambiar de modo que modifique los datos del csv
-#         # Agregar casilla de texto para nombre
-#     global texto_entry_nombre
-#     texto_entry_nombre = tk.Entry(nueva_ventanaadmin, font=('Arial', 12), width=31)
-#     texto_entry_nombre.place(x=15, y=130)
-# 
-#     # Agregar casilla de texto para apellido
-#     global texto_entry_apellido
-#     texto_entry_apellido = tk.Entry(nueva_ventanaadmin, font=('Arial', 12), width=31)
-#     texto_entry_apellido.place(x=15, y=190)
-# 
-#     # Agregar casilla de texto para edad
-#     global texto_entry_edad
-#     texto_entry_edad = tk.Entry(nueva_ventanaadmin, font=('Arial', 12), width=31)
-#     texto_entry_edad.place(x=15, y=250)
-#     # Casilla necesaria para el cambio de datos
-#     # Agregar casilla de texto para id llave PRINCIPAL de busqueda y cambio en csv
-#     global texto_entry_dpi_carnet
-#     texto_entry_dpi_carnet = tk.Entry(nueva_ventanaadmin, font=('Arial', 12), width=31)
-#     texto_entry_dpi_carnet.place(x=15, y=315)
-# 
-#     # Agregar casilla de texto para telefono
-#     global texto_entry_telefono
-#     texto_entry_telefono = tk.Entry(nueva_ventanaadmin, font=('Arial', 12), width=23)
-#     texto_entry_telefono.place(x=88, y=375)
-#     
-#     global genero_var
-#     genero_var = tk.StringVar()
-# 
-#     global opcion1_radio
-#     opcion1_radio = tk.Radiobutton(nueva_ventanaadmin, text="Hombre", font=('Arial', 12), variable=genero_var, value="Hombre")
-#     opcion1_radio.place(x=10, y=440)
-# 
-#     global opcion2_radio
-#     opcion2_radio = tk.Radiobutton(nueva_ventanaadmin, text="Mujer", font=('Arial', 12), variable=genero_var, value="Mujer")
-#     opcion2_radio.place(x=10, y=490)
-# 
-#     global opcion3_radio
-#     opcion3_radio = tk.Radiobutton(nueva_ventanaadmin, text="niño/a", font=('Arial', 12), variable=genero_var, value="niño/a")
-#     opcion3_radio.place(x=10, y=540)
-# 
-#     global treeview
-#     treeview = ttk.Treeview(nueva_ventanaadmin)
-#     treeview.place(x=330, y=375, width=700, height=200)
-# 
-#     # Agregar botón para mostrar los registros guardados
-#     btn_datoscsv = tk.Button(nueva_ventanaadmin, text="Mostrar los registros guardados", command=mostrar_registros_guardados)
-#     btn_datoscsv.place(x=100, y=550)
-# 
-#     btn_preguntas = tk.Button(nueva_ventanaadmin, text="Modificar Datos", **estilo_botonmd, command=validar_modificacion)
-#     btn_preguntas.place(x=100, y=500)
-#  
-# 
-# boton_xd1 = tk.Button(ventana, text="Administrador", **estilo_botonrd, command=ADMINISTRADOR)
-# boton_xd1.place(x=10, y=420)
-
+estilo_botondg1 = {'font': ('Arial', 12, "italic"),
+                  'fg': 'white',
+                  'bg': 'black',
+                  'width': 30,
+                  'height': 3}
 
 estilo_botondc = {'font': ('Arial', 10, "italic"),
                   'fg': 'white',
@@ -1433,3 +1693,4 @@ estilo_botonmd = {'font': ('Arial', 15, "italic"),
 
 
 ventana.mainloop()
+
