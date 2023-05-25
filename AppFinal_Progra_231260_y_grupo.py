@@ -1582,6 +1582,46 @@ def graficar_edades():
     # Mostrar la gráfica
     plt.show()
 
+def calcular_promedio_edades(ventana_admin):
+    # Leer el archivo CSV y obtener los datos de edades
+    edades = []
+    with open('datos.csv', 'r') as file:
+        reader = csv.reader(file)
+        next(reader)  # Saltar la fila de encabezados
+        for row in reader:
+            edad = row[3]  # Columna de la edad en el CSV
+            if edad:
+                edades.append(int(edad))
+
+    # Calcular el promedio de las edades
+    if len(edades) > 0:
+        promedio = sum(edades) / len(edades)
+    else:
+        promedio = 0
+
+    # Crear una etiqueta para mostrar el promedio debajo del botón
+    promedio_label = tk.Label(ventana_admin, text=f"Promedio de edades: {promedio:.2f}", font=('Arial', 12))
+    promedio_label.place(x=340, y=280)
+
+def calcular_promedio_registros(ventana_admin):
+    # Contar el total de registros en el archivo CSV
+    total_registros = 0
+    with open('datos.csv', 'r') as file:
+        reader = csv.reader(file)
+        next(reader)  # Saltar la fila de encabezados
+        for row in reader:
+            total_registros += 1
+
+    # Calcular el promedio de registros
+    if total_registros > 0:
+        promedio = total_registros / 2  # Aquí puedes calcular el promedio según tus necesidades
+    else:
+        promedio = 0
+
+    # Crear una etiqueta para mostrar el promedio debajo del botón
+    promedio_label = tk.Label(ventana_admin, text=f"Promedio de registros: {promedio:.2f}", font=('Arial', 12))
+    promedio_label.place(x=740, y=280)
+    
 def abrir_ventana_administrador():
     # Crear nueva ventana
     nueva_ventanaadmin = tk.Toplevel()
@@ -1662,32 +1702,37 @@ def abrir_ventana_administrador():
     btn_grafica1.place(x=340, y=20)
 #     btn_grafica2 = tk.Button(nueva_ventanaadmin, text="Graficar edades", **estilo_botong1, command=graficar_edades)
 #     btn_grafica2.place(x=400, y=5)
-    btn_grafica2 = tk.Button(nueva_ventanaadmin, text="Graficar edades", font=('Arial', 12, "italic"), fg='white', bg='black', width=30, height=3, command=graficar_edades)
-    btn_grafica2.place(x=340, y=150)
+    btn_grafica2 = tk.Button(nueva_ventanaadmin, text="Graficar edades", font=('Arial', 12, "italic"), fg='white', bg='brown', width=30, height=3, command=graficar_edades)
+    btn_grafica2.place(x=740, y=20) # 340 , 150
     # promedio de edades
-    btn_grafica3 = tk.Button(nueva_ventanaadmin, text="Promedio de edades", font=('Arial', 12, "italic"), fg='white', bg='black', width=30, height=3)
-    btn_grafica3.place(x=340, y=280)
+    btn_grafica3 = tk.Button(nueva_ventanaadmin, text="Promedio de edades", font=('Arial', 12, "italic"), fg='white', bg='brown', width=30, height=3, command=lambda: calcular_promedio_edades(nueva_ventanaadmin))
+    btn_grafica3.place(x=340, y=150)  # 340, 280
+    # promedio de personas
+    btn_grafica4 = tk.Button(nueva_ventanaadmin, text="Promedio de registros", font=('Arial', 12, "italic"), fg='white', bg='brown', width=30, height=3, command=lambda: calcular_promedio_registros(nueva_ventanaadmin))
+    btn_grafica4.place(x=740, y=150)  # 740, 280
 
     
 
 boton_xd1 = tk.Button(ventana, text="Administrador", **estilo_botonrd, command=ADMINISTRADOR)
 boton_xd1.place(x=10, y=420)
 
+
+
 estilo_botondg1 = {'font': ('Arial', 12, "italic"),
                   'fg': 'white',
-                  'bg': 'black',
+                  'bg': 'brown',
                   'width': 30,
                   'height': 3}
 
 estilo_botondc = {'font': ('Arial', 10, "italic"),
                   'fg': 'white',
-                  'bg': 'black',
+                  'bg': 'brown',
                   'width': 25,
                   'height': 1}
 
 estilo_botonmd = {'font': ('Arial', 15, "italic"),
                   'fg': 'white',
-                  'bg': 'black',
+                  'bg': 'brown',
                   'width': 15,
                   'height': 1}
 
